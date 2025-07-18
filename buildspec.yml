@@ -1,9 +1,28 @@
 version: 0.2
+
 phases:
+  install:
+    runtime-versions:
+      python: 3.10
+    commands:
+      - echo "🔧 Installing/updating AWS CLI and required tools"
+      - pip install --upgrade awscli
+
   build:
     commands:
-      - pip install -r requirements.txt -t .
-      - aws cloudformation package --template-file template.yml --output-template-file template-out.yml --s3-bucket simplilearn-serverless-project
+      - echo "📁 Listing files in build environment"
+      - ls -la
+      - echo "📦 Installing Python dependencies (if any)"
+      - if [ -f requirements.txt ]; then pip install -r requirements.txt -t .; else echo "⚠️ No requirements.txt found. Skipping dependency install."; fi
+      - echo "📄 Validating CloudFormation template file"
+      - if [ -f template.yml ]; then cat template.yml; else echo "❌ template.yml not found! Build will fail."; exit 1; fi
+      - echo "🚀 Packaging Lambda function using AWS CloudFormation"
+      - aws cloudformation package \
+          --template-file template.yml \
+          --output-template-file template-out.yml \
+          --s3-bucket simplilearn-serverless-project \
+          --region us-east-1 \
+          --debug
 
 artifacts:
   files:
